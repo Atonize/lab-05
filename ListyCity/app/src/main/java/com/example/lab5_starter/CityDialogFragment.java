@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ public class CityDialogFragment extends DialogFragment {
     interface CityDialogListener {
         void updateCity(City city, String title, String year);
         void addCity(City city);
+        void removeCity(City city);
     }
     private CityDialogListener listener;
 
@@ -44,8 +46,8 @@ public class CityDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         View view = getLayoutInflater().inflate(R.layout.fragment_city_details, null);
-        EditText editMovieName = view.findViewById(R.id.edit_city_name);
-        EditText editMovieYear = view.findViewById(R.id.edit_province);
+        EditText editCityName = view.findViewById(R.id.edit_city_name);
+        EditText editProvince = view.findViewById(R.id.edit_province);
 
         String tag = getTag();
         Bundle bundle = getArguments();
@@ -54,26 +56,34 @@ public class CityDialogFragment extends DialogFragment {
         if (Objects.equals(tag, "City Details") && bundle != null){
             city = (City) bundle.getSerializable("City");
             assert city != null;
-            editMovieName.setText(city.getName());
-            editMovieYear.setText(city.getProvince());
+            editCityName.setText(city.getName());
+            editProvince.setText(city.getProvince());
         }
         else {
-            city = null;}
+            city = null;
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        return builder
+        builder
                 .setView(view)
                 .setTitle("City Details")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Continue", (dialog, which) -> {
-                    String title = editMovieName.getText().toString();
-                    String year = editMovieYear.getText().toString();
+                    String title = editCityName.getText().toString();
+                    String year = editProvince.getText().toString();
                     if (Objects.equals(tag, "City Details")) {
                         listener.updateCity(city, title, year);
                     } else {
                         listener.addCity(new City(title, year));
                     }
-                })
-                .create();
+                });
+
+        if (city != null) {
+            builder
+                .setNeutralButton("Delete", (dialog, which) -> {
+                    listener.removeCity(city);
+                });
+        }
+        return builder.create();
     }
 }
